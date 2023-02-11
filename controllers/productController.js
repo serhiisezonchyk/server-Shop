@@ -163,8 +163,19 @@ export const destroy = async (req, res) => {
 
 export const edit = async(req, res)=>{
   const id = req.params.id;
+  const { img } = req.files;
   const {info} = req.body; 
   let obj = JSON.parse(info);
+
+  let fileName = v4() + ".jpg";
+  img.mv(
+    resolve(
+      path.dirname(fileURLToPath(import.meta.url)),
+      "..",
+      "static",
+      fileName
+    )
+  );
   ProductInfo.destroy({where:{productId: id}});
   obj.map(data=>{
     let product_info = {
@@ -175,7 +186,16 @@ export const edit = async(req, res)=>{
     console.log(product_info)
     ProductInfo.create(product_info);
   })
-    await Product.update(req.body, {where: {id:id}})
+
+  const product = {
+    name: req.body.name,
+    price: req.body.price,
+    brandId: req.body.brandId,
+    typeId: req.body.typeId,
+    img: fileName,
+  };
+
+    await Product.update(product, {where: {id:id}})
   .then((num)=>{
       if(num == 1){
           res.status(200).send({
