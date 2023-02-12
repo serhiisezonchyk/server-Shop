@@ -27,7 +27,7 @@ export const create = async (req, res, next) => {
       typeId: req.body.typeId,
       img: fileName,
     };
-    console.log(product)
+    console.log(product);
     await Product.create(product)
       .then((data) => {
         if (info) {
@@ -138,10 +138,9 @@ export const getOne = async (req, res) => {
 };
 
 export const destroy = async (req, res) => {
-  console.log("delete")
+  console.log("delete");
   const id = req.params.id;
-  await Product.destroy({ where: {id: id},
-    truncate: { cascade: true }})
+  await Product.destroy({ where: { id: id }, truncate: { cascade: true } })
     .then((num) => {
       if (num == 1) {
         res.status(200).send({
@@ -161,55 +160,62 @@ export const destroy = async (req, res) => {
     });
 };
 
-export const edit = async(req, res)=>{
+export const edit = async (req, res) => {
   const id = req.params.id;
-  const { img } = req.files;
-  const {info} = req.body; 
+  const { img } = req.files ? req.files : {};
+  const { info } = req.body;
+  console.log(img);
   let obj = JSON.parse(info);
-
   let fileName = v4() + ".jpg";
-  img.mv(
-    resolve(
-      path.dirname(fileURLToPath(import.meta.url)),
-      "..",
-      "static",
-      fileName
-    )
-  );
-  ProductInfo.destroy({where:{productId: id}});
-  obj.map(data=>{
+  if (img)
+    img.mv(
+      resolve(
+        path.dirname(fileURLToPath(import.meta.url)),
+        "..",
+        "static",
+        fileName
+      )
+    );
+  ProductInfo.destroy({ where: { productId: id } });
+  obj.map((data) => {
     let product_info = {
       title: data.title,
-      description:data.description,
-      productId:id
-    }
-    console.log(product_info)
+      description: data.description,
+      productId: id,
+    };
+    console.log(product_info);
     ProductInfo.create(product_info);
-  })
+  });
 
-  const product = {
+  const product = img?{
     name: req.body.name,
     price: req.body.price,
     brandId: req.body.brandId,
     typeId: req.body.typeId,
     img: fileName,
+  }:{
+    name: req.body.name,
+    price: req.body.price,
+    brandId: req.body.brandId,
+    typeId: req.body.typeId,
   };
 
-    await Product.update(product, {where: {id:id}})
-  .then((num)=>{
-      if(num == 1){
-          res.status(200).send({
-              message: "Type was updated successfully!"
-          })
-      } else {
-          res.status(401).send({
-            message: `Cannot update type with id=${id}. Maybe Tutorial was not found!`
-          });
-        }
-  }).catch((err)=>{
-    console.log(err)
-      res.status(500).send({
-          message: "Could not update type with id=" + id
+  await Product.update(product, { where: { id: id } })
+    .then((num) => {
+      if (num == 1) {
+        res.status(200).send({
+          message: "Type was updated successfully!",
         });
-  })
-}
+      } else {
+        res.status(401).send({
+          message: `Cannot update type with id=${id}. Maybe Tutorial was not found!`,
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send({
+        message: "Could not update type with id=" + id,
+      });
+    });
+};
